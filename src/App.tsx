@@ -2,9 +2,13 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import useResizeObserver from '@react-hook/resize-observer';
 import './App.css';
 import {
+  Alert,
   Box,
+  Grow,
+  GrowProps,
   IconButton,
   Popover,
+  Snackbar,
   Typography,
   useMediaQuery,
 } from '@mui/material';
@@ -62,15 +66,24 @@ function useWindowSize() {
   return windowSize;
 }
 
+function GrowTransition(props: GrowProps) {
+  return <Grow {...props} />;
+}
+
 interface AppState {
   wordLength: number;
   guesses: string[];
   guess: string;
   guessLocked: boolean;
-  shake: boolean;
   target: string;
   keyboardStyle: 'qwerty' | 'abc';
   anchorElement: HTMLButtonElement | null;
+  showTarget: boolean;
+}
+
+interface BadWordState {
+  shake: boolean;
+  showNotInWordList: boolean;
 }
 
 function App() {
@@ -93,10 +106,15 @@ function App() {
     guesses: [],
     guess: '',
     guessLocked: false,
-    shake: false,
     target: '',
     keyboardStyle: 'abc',
     anchorElement: null,
+    showTarget: false,
+  });
+
+  const [badWordState, setBadWordState] = useState<BadWordState>({
+    shake: false,
+    showNotInWordList: false,
   });
 
   const {
@@ -104,11 +122,13 @@ function App() {
     guesses,
     guess,
     guessLocked,
-    shake,
     target,
     keyboardStyle,
     anchorElement,
+    showTarget,
   } = state;
+
+  const { shake, showNotInWordList } = badWordState;
 
   useEffect(() => {
     if (target === '') {
@@ -166,16 +186,22 @@ function App() {
       !shake
     ) {
       if (!dictionary.includes(guess.toLowerCase())) {
-        setState({
-          ...state,
+        setBadWordState({
           shake: true,
+          showNotInWordList: true,
         });
         setTimeout(() => {
-          setState({
-            ...state,
+          setBadWordState({
             shake: false,
+            showNotInWordList: true,
           });
         }, 300);
+        setTimeout(() => {
+          setBadWordState({
+            shake: false,
+            showNotInWordList: false,
+          });
+        }, 2000);
         return;
       }
 
@@ -198,6 +224,7 @@ function App() {
         guesses: [...guesses, guess],
         guess: '',
         guessLocked: false,
+        showTarget: guesses.length + 1 === TOTAL_GUESSES && guess !== target,
       });
     }
   }, [guess, guesses, guessesLeft, lastGuess, state, target, wordLength]);
@@ -222,6 +249,7 @@ function App() {
         guesses: [],
         guess: '',
         target: words[Math.floor(Math.random() * words.length)].toUpperCase(),
+        showTarget: false,
       });
     },
     [state]
@@ -244,7 +272,6 @@ function App() {
     });
   }, [keyboardStyle, state]);
 
-  console.log(state);
   const widthMultiplier = useMemo(() => {
     if (
       onBigScreen ||
@@ -260,7 +287,6 @@ function App() {
 
     return (playareaHeight - (TOTAL_GUESSES - 1) * 5) / TOTAL_GUESSES;
   }, [headerSize?.height, keyboardSize?.height, onBigScreen, size.height]);
-  console.log(widthMultiplier);
 
   return (
     <div className="App">
@@ -392,6 +418,48 @@ function App() {
           onLetterDeleted={onLetterDeleted}
         />
       </header>
+      <Snackbar open={showTarget} TransitionComponent={GrowTransition}>
+        <Alert
+          classes={{
+            message: 'alertMessage',
+          }}
+          sx={{
+            position: 'fixed',
+            width: '80%',
+            maxWidth: '484px',
+            height: '48px',
+            top: 'calc(50% - 48px)',
+            left: '10%',
+            boxSizing: 'border-box',
+            fontSize: 16,
+            fontWeight: 'bold',
+          }}
+          severity="error"
+        >
+          {showTarget ? target : ""}
+        </Alert>
+      </Snackbar>
+      <Snackbar open={showNotInWordList} TransitionComponent={GrowTransition}>
+        <Alert
+          classes={{
+            message: 'alertMessage',
+          }}
+          sx={{
+            position: 'fixed',
+            width: '80%',
+            maxWidth: '484px',
+            height: '48px',
+            top: 'calc(50% - 48px)',
+            left: '10%',
+            boxSizing: 'border-box',
+            fontSize: 16,
+            fontWeight: 'bold',
+          }}
+          severity="warning"
+        >
+          Not in word list
+        </Alert>
+      </Snackbar>
     </div>
   );
 }
