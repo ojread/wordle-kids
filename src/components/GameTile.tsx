@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Box } from '@mui/material';
 import ReactCardFlip from 'react-card-flip';
+import './GameTile.css';
 
 interface GameTileProps {
   letter: string;
@@ -34,10 +35,9 @@ function GameTile({ letter, index, target, locked, onFlipEnd }: GameTileProps) {
 
     return (
       <Box
+        className="tile"
         sx={{
           display: 'flex',
-          width: 62,
-          height: 62,
           backgroundColor: color,
           borderWidth: '2px',
           borderStyle: 'solid',
@@ -57,10 +57,9 @@ function GameTile({ letter, index, target, locked, onFlipEnd }: GameTileProps) {
   const unlockedSide = useMemo(
     () => (
       <Box
+        className="tile"
         sx={{
           display: 'flex',
-          width: 62,
-          height: 62,
           backgroundColor: '#121213',
           borderWidth: '2px',
           borderStyle: 'solid',

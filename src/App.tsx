@@ -1,6 +1,13 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import useResizeObserver from '@react-hook/resize-observer';
 import './App.css';
-import { Box, IconButton, Popover, Typography } from '@mui/material';
+import {
+  Box,
+  IconButton,
+  Popover,
+  Typography,
+  useMediaQuery,
+} from '@mui/material';
 import SettingsOutlinedIcon from '@mui/icons-material/SettingsOutlined';
 import GameTiles from './components/GameTiles';
 import Keyboard from './components/Keyboard';
@@ -8,6 +15,52 @@ import allWords from './words.json';
 import dictionary from './dictionary.json';
 
 const TOTAL_GUESSES = 6;
+const DEFAULT_WIDTH_MULTIPLIER = 66;
+const MARGIN = 30;
+
+const useSize = (target: React.RefObject<HTMLDivElement>) => {
+  const [size, setSize] = React.useState<DOMRectReadOnly>();
+
+  React.useLayoutEffect(() => {
+    if (!target.current) {
+      return;
+    }
+    setSize(target.current.getBoundingClientRect());
+  }, [target]);
+
+  // Where the magic happens
+  useResizeObserver(target, (entry) => setSize(entry.contentRect));
+  return size;
+};
+
+function useWindowSize() {
+  // Initialize state with undefined width/height so server and client renders match
+  // Learn more here: https://joshwcomeau.com/react/the-perils-of-rehydration/
+  const [windowSize, setWindowSize] = useState<{
+    width: number | undefined;
+    height: number | undefined;
+  }>({
+    width: undefined,
+    height: undefined,
+  });
+  useEffect(() => {
+    // Handler to call on window resize
+    function handleResize() {
+      // Set window width/height to state
+      setWindowSize({
+        width: window.innerWidth,
+        height: window.innerHeight,
+      });
+    }
+    // Add event listener
+    window.addEventListener('resize', handleResize);
+    // Call handler right away so state gets updated with initial window size
+    handleResize();
+    // Remove event listener on cleanup
+    return () => window.removeEventListener('resize', handleResize);
+  }, []); // Empty array ensures that effect is only run on mount
+  return windowSize;
+}
 
 interface AppState {
   wordLength: number;
@@ -21,6 +74,20 @@ interface AppState {
 }
 
 function App() {
+  const size = useWindowSize();
+
+  console.log(size);
+
+  const headerRef = React.useRef<HTMLDivElement>(null);
+  const headerSize = useSize(headerRef);
+
+  const keyboardRef = React.useRef<HTMLDivElement>(null);
+  const keyboardSize = useSize(keyboardRef);
+  console.log(headerSize);
+  console.log(keyboardSize);
+
+  const onBigScreen = useMediaQuery('(min-height:700px)');
+
   const [state, setState] = useState<AppState>({
     wordLength: 3,
     guesses: [],
@@ -178,12 +245,30 @@ function App() {
   }, [keyboardStyle, state]);
 
   console.log(state);
+  const widthMultiplier = useMemo(() => {
+    if (
+      onBigScreen ||
+      !size?.height ||
+      !headerSize?.height ||
+      !keyboardSize?.height
+    ) {
+      return DEFAULT_WIDTH_MULTIPLIER;
+    }
+
+    const playareaHeight =
+      size.height - headerSize.height - keyboardSize.height - MARGIN;
+
+    return (playareaHeight - (TOTAL_GUESSES - 1) * 5) / TOTAL_GUESSES;
+  }, [headerSize?.height, keyboardSize?.height, onBigScreen, size.height]);
+  console.log(widthMultiplier);
 
   return (
     <div className="App">
       <header className="App-header">
         <Typography
-          variant="h4"
+          ref={headerRef}
+          variant={onBigScreen ? 'h4' : 'h5'}
+          component="div"
           sx={{
             display: 'flex',
             borderBottom: '1px solid #3a3a3c',
@@ -199,7 +284,18 @@ function App() {
           <Box sx={{ flexGrow: 1 }}></Box>
           Wordle for Kids
           <Box sx={{ flexGrow: 1, display: 'flex', alignItems: 'flex-end' }}>
-            <IconButton onClick={handleClick}>
+            <IconButton
+              onClick={handleClick}
+              sx={
+                onBigScreen
+                  ? undefined
+                  : {
+                      position: 'absolute',
+                      top: '4px',
+                      right: '4px',
+                    }
+              }
+            >
               <SettingsOutlinedIcon sx={{ color: 'white' }} />
             </IconButton>
             <Popover
@@ -251,6 +347,7 @@ function App() {
             display: 'grid',
             gridTemplateRows: 'repeat(6, 1fr)',
             gridGap: '6px',
+            width: `${wordLength * widthMultiplier + (wordLength - 1) * 5}px`,
           }}
         >
           {guesses.map((guess, index) => (
@@ -286,6 +383,7 @@ function App() {
         </Box>
         <Box sx={{ flexGrow: 1 }} />
         <Keyboard
+          keyboardRef={keyboardRef}
           guesses={guesses}
           target={target}
           keyboardStyle={keyboardStyle}

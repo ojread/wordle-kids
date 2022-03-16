@@ -3,6 +3,7 @@ import BackspaceOutlinedIcon from '@mui/icons-material/BackspaceOutlined';
 import KeyboardButton from './KeyboardButton';
 
 interface KeyboardProps {
+  keyboardRef: React.RefObject<HTMLDivElement>;
   guesses: string[];
   target: string;
   keyboardStyle: 'qwerty' | 'abc';
@@ -12,6 +13,7 @@ interface KeyboardProps {
 }
 
 function Keyboard({
+  keyboardRef,
   guesses,
   target,
   keyboardStyle,
@@ -21,13 +23,16 @@ function Keyboard({
 }: KeyboardProps) {
   return keyboardStyle === 'abc' ? (
     <Box
+      ref={keyboardRef}
+      key="abc-keyboard"
       sx={{
         display: 'grid',
         gridTemplateRows: `repeat(3, 1fr)`,
-        gridGap: '5px',
         mt: '10px',
         ml: 1,
         mr: 1,
+        width: 'calc(100% - 16px)',
+        maxWidth: '484px'
       }}
     >
       <Box
@@ -105,7 +110,7 @@ function Keyboard({
           margin: '0 auto 8px',
         }}
       >
-        <Box sx={{ flexGrow: 1 }} />
+        <Box sx={{ flexGrow: 1, flex: 0.5 }} />
         <KeyboardButton
           letter="K"
           guesses={guesses}
@@ -160,7 +165,7 @@ function Keyboard({
           target={target}
           onClick={onLetterEntered}
         />
-        <Box sx={{ flexGrow: 1 }} />
+        <Box sx={{ flexGrow: 1, flex: 0.5 }} />
       </Box>
       <Box
         sx={{
@@ -174,7 +179,7 @@ function Keyboard({
           guesses={guesses}
           target={target}
           onClick={onGuess}
-          sx={{ flexGrow: 1 }}
+          sx={{ flex: 1.5 }}
         />
         <KeyboardButton
           letter="T"
@@ -223,12 +228,14 @@ function Keyboard({
           guesses={guesses}
           target={target}
           onClick={onLetterDeleted}
-          sx={{ flexGrow: 1 }}
+          sx={{ flex: 1.5 }}
         />
       </Box>
     </Box>
   ) : (
     <Box
+      ref={keyboardRef}
+      key="qwerty-keyboard"
       sx={{
         display: 'grid',
         gridTemplateRows: `repeat(3, 1fr)`,
@@ -382,7 +389,7 @@ function Keyboard({
           guesses={guesses}
           target={target}
           onClick={onGuess}
-          sx={{ flexGrow: 1 }}
+          sx={{ flex: 1.5 }}
         />
         <KeyboardButton
           letter="Z"
@@ -431,7 +438,7 @@ function Keyboard({
           guesses={guesses}
           target={target}
           onClick={onLetterDeleted}
-          sx={{ flexGrow: 1 }}
+          sx={{ flex: 1.5 }}
         />
       </Box>
     </Box>
