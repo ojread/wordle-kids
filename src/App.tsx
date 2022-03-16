@@ -16,7 +16,7 @@ import dictionary from './dictionary.json';
 
 const TOTAL_GUESSES = 6;
 const DEFAULT_WIDTH_MULTIPLIER = 66;
-const MARGIN = 30;
+const MARGIN = 95;
 
 const useSize = (target: React.RefObject<HTMLDivElement>) => {
   const [size, setSize] = React.useState<DOMRectReadOnly>();
