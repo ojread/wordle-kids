@@ -16,13 +16,16 @@
 .App-header {
   background-color: #121213;
   min-height: 100vh;
-  min-height: -webkit-fill-available;
   display: flex;
   flex-direction: column;
   align-items: center;
   font-size: calc(10px + 2vmin);
   color: white;
   overflow: hidden;
+}
+
+.App-header.App-header-mobile {
+  min-height: -webkit-fill-available;
 }
 
 .App-link {

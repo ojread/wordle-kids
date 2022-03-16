@@ -288,9 +288,61 @@ function App() {
     return (playareaHeight - (TOTAL_GUESSES - 1) * 5) / TOTAL_GUESSES;
   }, [headerSize?.height, keyboardSize?.height, onBigScreen, size.height]);
 
+  const onKeyDown = useCallback(
+    (event: KeyboardEvent) => {
+      switch (event.key) {
+        case 'a':
+        case 'b':
+        case 'c':
+        case 'd':
+        case 'e':
+        case 'f':
+        case 'g':
+        case 'h':
+        case 'i':
+        case 'j':
+        case 'k':
+        case 'l':
+        case 'm':
+        case 'n':
+        case 'o':
+        case 'p':
+        case 'q':
+        case 'r':
+        case 's':
+        case 't':
+        case 'u':
+        case 'v':
+        case 'w':
+        case 'x':
+        case 'y':
+        case 'z':
+          onLetterEntered(event.key.toUpperCase());
+          break;
+        case 'Enter':
+          onGuess();
+          break;
+        case 'Backspace':
+          onLetterDeleted();
+          break;
+      }
+    },
+    [onGuess, onLetterDeleted, onLetterEntered]
+  );
+
+  useEffect(() => {
+    window.addEventListener('keydown', onKeyDown);
+
+    return () => {
+      window.removeEventListener('keydown', onKeyDown);
+    };
+  }, [onKeyDown]);
+
   return (
     <div className="App">
-      <header className="App-header">
+      <header
+        className={`App-header${onBigScreen ? '' : ' App-header-mobile'}`}
+      >
         <Typography
           ref={headerRef}
           variant={onBigScreen ? 'h4' : 'h5'}
@@ -436,7 +488,7 @@ function App() {
           }}
           severity="error"
         >
-          {showTarget ? target : ""}
+          {showTarget ? target : ''}
         </Alert>
       </Snackbar>
       <Snackbar open={showNotInWordList} TransitionComponent={GrowTransition}>
