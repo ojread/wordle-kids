@@ -1,6 +1,7 @@
 import { Box } from '@mui/material';
 import BackspaceOutlinedIcon from '@mui/icons-material/BackspaceOutlined';
 import KeyboardButton from './KeyboardButton';
+import { useMemo } from 'react';
 
 interface KeyboardProps {
   keyboardRef: React.RefObject<HTMLDivElement>;
@@ -12,6 +13,18 @@ interface KeyboardProps {
   onLetterDeleted: () => void;
 }
 
+const abcKeyboard = [
+  ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J'],
+  ['K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S'],
+  ['T', 'U', 'V', 'W', 'X', 'Y', 'Z'],
+];
+
+const qwertyKeyboard = [
+  ['Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P'],
+  ['A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L'],
+  ['Z', 'X', 'C', 'V', 'B', 'N', 'M'],
+];
+
 function Keyboard({
   keyboardRef,
   guesses,
@@ -21,7 +34,22 @@ function Keyboard({
   onLetterEntered,
   onLetterDeleted,
 }: KeyboardProps) {
-  return keyboardStyle === 'abc' ? (
+  const keyboardRows = useMemo(() => {
+    const keyboard = keyboardStyle === 'abc' ? abcKeyboard : qwertyKeyboard;
+
+    return keyboard.map((keyboardRow) =>
+      keyboardRow.map((key) => (
+        <KeyboardButton
+          letter={key}
+          guesses={guesses}
+          target={target}
+          onClick={onLetterEntered}
+        />
+      ))
+    );
+  }, [guesses, keyboardStyle, onLetterEntered, target]);
+
+  return (
     <Box
       ref={keyboardRef}
       key="abc-keyboard"
@@ -32,7 +60,7 @@ function Keyboard({
         ml: 1,
         mr: 1,
         width: 'calc(100% - 16px)',
-        maxWidth: '484px'
+        maxWidth: '484px',
       }}
     >
       <Box
@@ -42,66 +70,7 @@ function Keyboard({
           margin: '0 auto 8px',
         }}
       >
-        <KeyboardButton
-          letter="A"
-          guesses={guesses}
-          target={target}
-          onClick={onLetterEntered}
-        />
-        <KeyboardButton
-          letter="B"
-          guesses={guesses}
-          target={target}
-          onClick={onLetterEntered}
-        />
-        <KeyboardButton
-          letter="C"
-          guesses={guesses}
-          target={target}
-          onClick={onLetterEntered}
-        />
-        <KeyboardButton
-          letter="D"
-          guesses={guesses}
-          target={target}
-          onClick={onLetterEntered}
-        />
-        <KeyboardButton
-          letter="E"
-          guesses={guesses}
-          target={target}
-          onClick={onLetterEntered}
-        />
-        <KeyboardButton
-          letter="F"
-          guesses={guesses}
-          target={target}
-          onClick={onLetterEntered}
-        />
-        <KeyboardButton
-          letter="G"
-          guesses={guesses}
-          target={target}
-          onClick={onLetterEntered}
-        />
-        <KeyboardButton
-          letter="H"
-          guesses={guesses}
-          target={target}
-          onClick={onLetterEntered}
-        />
-        <KeyboardButton
-          letter="I"
-          guesses={guesses}
-          target={target}
-          onClick={onLetterEntered}
-        />
-        <KeyboardButton
-          letter="J"
-          guesses={guesses}
-          target={target}
-          onClick={onLetterEntered}
-        />
+        {keyboardRows[0]}
       </Box>
       <Box
         sx={{
@@ -111,60 +80,7 @@ function Keyboard({
         }}
       >
         <Box sx={{ flexGrow: 1, flex: 0.5 }} />
-        <KeyboardButton
-          letter="K"
-          guesses={guesses}
-          target={target}
-          onClick={onLetterEntered}
-        />
-        <KeyboardButton
-          letter="L"
-          guesses={guesses}
-          target={target}
-          onClick={onLetterEntered}
-        />
-        <KeyboardButton
-          letter="M"
-          guesses={guesses}
-          target={target}
-          onClick={onLetterEntered}
-        />
-        <KeyboardButton
-          letter="N"
-          guesses={guesses}
-          target={target}
-          onClick={onLetterEntered}
-        />
-        <KeyboardButton
-          letter="O"
-          guesses={guesses}
-          target={target}
-          onClick={onLetterEntered}
-        />
-        <KeyboardButton
-          letter="P"
-          guesses={guesses}
-          target={target}
-          onClick={onLetterEntered}
-        />
-        <KeyboardButton
-          letter="Q"
-          guesses={guesses}
-          target={target}
-          onClick={onLetterEntered}
-        />
-        <KeyboardButton
-          letter="R"
-          guesses={guesses}
-          target={target}
-          onClick={onLetterEntered}
-        />
-        <KeyboardButton
-          letter="S"
-          guesses={guesses}
-          target={target}
-          onClick={onLetterEntered}
-        />
+        {keyboardRows[1]}
         <Box sx={{ flexGrow: 1, flex: 0.5 }} />
       </Box>
       <Box
@@ -181,258 +97,7 @@ function Keyboard({
           onClick={onGuess}
           sx={{ flex: 1.5 }}
         />
-        <KeyboardButton
-          letter="T"
-          guesses={guesses}
-          target={target}
-          onClick={onLetterEntered}
-        />
-        <KeyboardButton
-          letter="U"
-          guesses={guesses}
-          target={target}
-          onClick={onLetterEntered}
-        />
-        <KeyboardButton
-          letter="V"
-          guesses={guesses}
-          target={target}
-          onClick={onLetterEntered}
-        />
-        <KeyboardButton
-          letter="W"
-          guesses={guesses}
-          target={target}
-          onClick={onLetterEntered}
-        />
-        <KeyboardButton
-          letter="X"
-          guesses={guesses}
-          target={target}
-          onClick={onLetterEntered}
-        />
-        <KeyboardButton
-          letter="Y"
-          guesses={guesses}
-          target={target}
-          onClick={onLetterEntered}
-        />
-        <KeyboardButton
-          letter="Z"
-          guesses={guesses}
-          target={target}
-          onClick={onLetterEntered}
-        />
-        <KeyboardButton
-          label={<BackspaceOutlinedIcon />}
-          guesses={guesses}
-          target={target}
-          onClick={onLetterDeleted}
-          sx={{ flex: 1.5 }}
-        />
-      </Box>
-    </Box>
-  ) : (
-    <Box
-      ref={keyboardRef}
-      key="qwerty-keyboard"
-      sx={{
-        display: 'grid',
-        gridTemplateRows: `repeat(3, 1fr)`,
-        gridGap: '5px',
-        mt: '10px',
-        ml: 1,
-        mr: 1,
-      }}
-    >
-      <Box
-        sx={{
-          display: 'flex',
-          width: '100%',
-          margin: '0 auto 8px',
-        }}
-      >
-        <KeyboardButton
-          letter="Q"
-          guesses={guesses}
-          target={target}
-          onClick={onLetterEntered}
-        />
-        <KeyboardButton
-          letter="W"
-          guesses={guesses}
-          target={target}
-          onClick={onLetterEntered}
-        />
-        <KeyboardButton
-          letter="E"
-          guesses={guesses}
-          target={target}
-          onClick={onLetterEntered}
-        />
-        <KeyboardButton
-          letter="R"
-          guesses={guesses}
-          target={target}
-          onClick={onLetterEntered}
-        />
-        <KeyboardButton
-          letter="T"
-          guesses={guesses}
-          target={target}
-          onClick={onLetterEntered}
-        />
-        <KeyboardButton
-          letter="Y"
-          guesses={guesses}
-          target={target}
-          onClick={onLetterEntered}
-        />
-        <KeyboardButton
-          letter="U"
-          guesses={guesses}
-          target={target}
-          onClick={onLetterEntered}
-        />
-        <KeyboardButton
-          letter="I"
-          guesses={guesses}
-          target={target}
-          onClick={onLetterEntered}
-        />
-        <KeyboardButton
-          letter="O"
-          guesses={guesses}
-          target={target}
-          onClick={onLetterEntered}
-        />
-        <KeyboardButton
-          letter="P"
-          guesses={guesses}
-          target={target}
-          onClick={onLetterEntered}
-        />
-      </Box>
-      <Box
-        sx={{
-          display: 'flex',
-          width: '100%',
-          margin: '0 auto 8px',
-        }}
-      >
-        <Box sx={{ flexGrow: 1 }} />
-        <KeyboardButton
-          letter="A"
-          guesses={guesses}
-          target={target}
-          onClick={onLetterEntered}
-        />
-        <KeyboardButton
-          letter="S"
-          guesses={guesses}
-          target={target}
-          onClick={onLetterEntered}
-        />
-        <KeyboardButton
-          letter="D"
-          guesses={guesses}
-          target={target}
-          onClick={onLetterEntered}
-        />
-        <KeyboardButton
-          letter="F"
-          guesses={guesses}
-          target={target}
-          onClick={onLetterEntered}
-        />
-        <KeyboardButton
-          letter="G"
-          guesses={guesses}
-          target={target}
-          onClick={onLetterEntered}
-        />
-        <KeyboardButton
-          letter="H"
-          guesses={guesses}
-          target={target}
-          onClick={onLetterEntered}
-        />
-        <KeyboardButton
-          letter="J"
-          guesses={guesses}
-          target={target}
-          onClick={onLetterEntered}
-        />
-        <KeyboardButton
-          letter="K"
-          guesses={guesses}
-          target={target}
-          onClick={onLetterEntered}
-        />
-        <KeyboardButton
-          letter="L"
-          guesses={guesses}
-          target={target}
-          onClick={onLetterEntered}
-        />
-        <Box sx={{ flexGrow: 1 }} />
-      </Box>
-      <Box
-        sx={{
-          display: 'flex',
-          width: '100%',
-          margin: '0 auto 8px',
-        }}
-      >
-        <KeyboardButton
-          label="Enter"
-          guesses={guesses}
-          target={target}
-          onClick={onGuess}
-          sx={{ flex: 1.5 }}
-        />
-        <KeyboardButton
-          letter="Z"
-          guesses={guesses}
-          target={target}
-          onClick={onLetterEntered}
-        />
-        <KeyboardButton
-          letter="X"
-          guesses={guesses}
-          target={target}
-          onClick={onLetterEntered}
-        />
-        <KeyboardButton
-          letter="C"
-          guesses={guesses}
-          target={target}
-          onClick={onLetterEntered}
-        />
-        <KeyboardButton
-          letter="V"
-          guesses={guesses}
-          target={target}
-          onClick={onLetterEntered}
-        />
-        <KeyboardButton
-          letter="B"
-          guesses={guesses}
-          target={target}
-          onClick={onLetterEntered}
-        />
-        <KeyboardButton
-          letter="N"
-          guesses={guesses}
-          target={target}
-          onClick={onLetterEntered}
-        />
-        <KeyboardButton
-          letter="M"
-          guesses={guesses}
-          target={target}
-          onClick={onLetterEntered}
-        />
+        {keyboardRows[2]}
         <KeyboardButton
           label={<BackspaceOutlinedIcon />}
           guesses={guesses}
