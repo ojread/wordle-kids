@@ -260,19 +260,10 @@ function App() {
   );
 
   const onChangeKeyboardStyle = useCallback(() => {
-    if (keyboardStyle === 'abc') {
-      setAnchorElement(null);
-      setState({
-        ...state,
-        keyboardStyle: 'qwerty',
-      });
-      return;
-    }
-
     setAnchorElement(null);
     setState({
       ...state,
-      keyboardStyle: 'abc',
+      keyboardStyle: keyboardStyle === 'abc' ? 'qwerty' : 'abc',
     });
   }, [keyboardStyle, state]);
 
@@ -294,6 +285,7 @@ function App() {
 
   const onKeyDown = useCallback(
     (event: KeyboardEvent) => {
+      event.preventDefault();
       switch (event.key) {
         case 'a':
         case 'b':
@@ -506,7 +498,7 @@ function App() {
             maxWidth: '484px',
             height: '48px',
             top: 'calc(50% - 48px)',
-            left: '10%',
+            left: (size?.width ?? 0) < 484 ? '10%' : 'calc(50% - 242px)',
             boxSizing: 'border-box',
             fontSize: 16,
             fontWeight: 'bold',
