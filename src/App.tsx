@@ -285,8 +285,8 @@ function App() {
 
   const onKeyDown = useCallback(
     (event: KeyboardEvent) => {
-      event.preventDefault();
       if (event.shiftKey && event.key === 'n') {
+        event.preventDefault();
         onWordLengthHandler(wordLength);
         return;
       }
@@ -295,6 +295,7 @@ function App() {
         case '3':
         case '4':
         case '5':
+          event.preventDefault();
           onWordLengthHandler(+event.key);
           break;
         case 'a':
@@ -323,12 +324,15 @@ function App() {
         case 'x':
         case 'y':
         case 'z':
+          event.preventDefault();
           onLetterEntered(event.key.toUpperCase());
           break;
         case 'Enter':
+          event.preventDefault();
           onGuess();
           break;
         case 'Backspace':
+          event.preventDefault();
           onLetterDeleted();
           break;
       }
