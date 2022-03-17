@@ -305,13 +305,21 @@ function App() {
     [guess, guesses, onWordLengthHandler, target]
   );
 
-  const onChangeKeyboardStyle = useCallback(() => {
-    setAnchorElement(null);
-    setState({
-      ...state,
-      keyboardStyle: keyboardStyle === 'abc' ? 'qwerty' : 'abc',
-    });
-  }, [keyboardStyle, state]);
+  const onChangeKeyboardStyle = useCallback(
+    (newKeyboardStyle: 'qwerty' | 'abc') => {
+      setAnchorElement(null);
+      setState({
+        ...state,
+        keyboardStyle: newKeyboardStyle,
+      });
+    },
+    [state]
+  );
+
+  const toggleKeyboardStyle = useCallback(
+    () => onChangeKeyboardStyle(keyboardStyle === 'abc' ? 'qwerty' : 'abc'),
+    [keyboardStyle, onChangeKeyboardStyle]
+  );
 
   const widthMultiplier = useMemo(() => {
     if (
@@ -331,10 +339,21 @@ function App() {
 
   const onKeyDown = useCallback(
     (event: KeyboardEvent) => {
-      if (event.shiftKey && event.key === 'N') {
-        event.preventDefault();
-        tryStartNewGame(wordLength);
-        return;
+      if (event.shiftKey) {
+        switch (event.key.toLowerCase()) {
+          case 'n':
+            event.preventDefault();
+            tryStartNewGame(wordLength);
+            return;
+          case 'q':
+            event.preventDefault();
+            onChangeKeyboardStyle('qwerty');
+            return;
+          case 'a':
+            event.preventDefault();
+            onChangeKeyboardStyle('abc');
+            return;
+        }
       }
 
       switch (event.key.toLowerCase()) {
@@ -383,7 +402,14 @@ function App() {
           break;
       }
     },
-    [onGuess, onLetterDeleted, onLetterEntered, tryStartNewGame, wordLength]
+    [
+      onChangeKeyboardStyle,
+      onGuess,
+      onLetterDeleted,
+      onLetterEntered,
+      tryStartNewGame,
+      wordLength,
+    ]
   );
 
   useEffect(() => {
@@ -477,7 +503,7 @@ function App() {
                   </Box>
                   <Box
                     sx={{ p: 1, cursor: 'pointer' }}
-                    onClick={onChangeKeyboardStyle}
+                    onClick={toggleKeyboardStyle}
                   >
                     Change to {keyboardStyle === 'abc' ? 'QWERTY' : 'ABC'}{' '}
                     keyboard
