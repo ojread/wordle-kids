@@ -286,7 +286,17 @@ function App() {
   const onKeyDown = useCallback(
     (event: KeyboardEvent) => {
       event.preventDefault();
+      if (event.shiftKey && event.key === 'n') {
+        onWordLengthHandler(wordLength);
+        return;
+      }
+
       switch (event.key) {
+        case '3':
+        case '4':
+        case '5':
+          onWordLengthHandler(+event.key);
+          break;
         case 'a':
         case 'b':
         case 'c':
@@ -323,7 +333,7 @@ function App() {
           break;
       }
     },
-    [onGuess, onLetterDeleted, onLetterEntered]
+    [onGuess, onLetterDeleted, onLetterEntered, onWordLengthHandler, wordLength]
   );
 
   useEffect(() => {
