@@ -40,6 +40,7 @@ function Keyboard({
     return keyboard.map((keyboardRow) =>
       keyboardRow.map((key) => (
         <KeyboardButton
+          key={`keyboard-key-${key}`}
           letter={key}
           guesses={guesses}
           target={target}

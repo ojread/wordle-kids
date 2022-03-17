@@ -66,6 +66,27 @@ function useWindowSize() {
   return windowSize;
 }
 
+function loadState(): AppState {
+  const rawData = window.localStorage.getItem('data');
+  if (!rawData) {
+    return {
+      wordLength: 3,
+      guesses: [],
+      guess: '',
+      guessLocked: false,
+      target: '',
+      keyboardStyle: 'abc',
+      showTarget: false,
+    };
+  }
+
+  return JSON.parse(rawData) as AppState;
+}
+
+function saveState(state: AppState) {
+  window.localStorage.setItem('data', JSON.stringify(state));
+}
+
 function GrowTransition(props: GrowProps) {
   return <Grow {...props} />;
 }
@@ -77,7 +98,6 @@ interface AppState {
   guessLocked: boolean;
   target: string;
   keyboardStyle: 'qwerty' | 'abc';
-  anchorElement: HTMLButtonElement | null;
   showTarget: boolean;
 }
 
@@ -89,28 +109,17 @@ interface BadWordState {
 function App() {
   const size = useWindowSize();
 
-  console.log(size);
-
   const headerRef = React.useRef<HTMLDivElement>(null);
   const headerSize = useSize(headerRef);
 
   const keyboardRef = React.useRef<HTMLDivElement>(null);
   const keyboardSize = useSize(keyboardRef);
-  console.log(headerSize);
-  console.log(keyboardSize);
 
   const onBigScreen = useMediaQuery('(min-height:700px)');
 
-  const [state, setState] = useState<AppState>({
-    wordLength: 3,
-    guesses: [],
-    guess: '',
-    guessLocked: false,
-    target: '',
-    keyboardStyle: 'abc',
-    anchorElement: null,
-    showTarget: false,
-  });
+  const [state, setState] = useState<AppState>(loadState());
+
+  saveState(state);
 
   const [badWordState, setBadWordState] = useState<BadWordState>({
     shake: false,
@@ -124,7 +133,6 @@ function App() {
     guessLocked,
     target,
     keyboardStyle,
-    anchorElement,
     showTarget,
   } = state;
 
@@ -141,11 +149,14 @@ function App() {
     }
   }, [state, target, wordLength]);
 
+  const [anchorElement, setAnchorElement] = useState<HTMLButtonElement | null>(
+    null
+  );
   const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
-    setState({ ...state, anchorElement: event.currentTarget });
+    setAnchorElement(event.currentTarget);
   };
   const handleClose = () => {
-    setState({ ...state, anchorElement: null });
+    setAnchorElement(null);
   };
   const popoverOpen = useMemo(() => Boolean(anchorElement), [anchorElement]);
 
@@ -161,13 +172,6 @@ function App() {
 
   const onLetterEntered = useCallback(
     (letter: string) => {
-      console.log(
-        lastGuess,
-        target,
-        guess.length,
-        wordLength,
-        `${guess}${letter}`
-      );
       if (lastGuess !== target && guess.length < wordLength) {
         setState({
           ...state,
@@ -242,10 +246,10 @@ function App() {
     (length: number) => {
       const words = (allWords as Record<string, string[]>)[`${length}`];
 
+      setAnchorElement(null);
       setState({
         ...state,
         wordLength: length,
-        anchorElement: null,
         guesses: [],
         guess: '',
         target: words[Math.floor(Math.random() * words.length)].toUpperCase(),
@@ -257,18 +261,18 @@ function App() {
 
   const onChangeKeyboardStyle = useCallback(() => {
     if (keyboardStyle === 'abc') {
+      setAnchorElement(null);
       setState({
         ...state,
         keyboardStyle: 'qwerty',
-        anchorElement: null,
       });
       return;
     }
 
+    setAnchorElement(null);
     setState({
       ...state,
       keyboardStyle: 'abc',
-      anchorElement: null,
     });
   }, [keyboardStyle, state]);
 
@@ -389,7 +393,7 @@ function App() {
                 horizontal: 'right',
               }}
             >
-              <Typography sx={{ p: 1 }}>
+              <Typography component="div" sx={{ p: 1 }}>
                 <Box
                   sx={{ p: 1, cursor: 'pointer' }}
                   onClick={() => onWordLengthHandler(3)}
@@ -481,7 +485,7 @@ function App() {
             maxWidth: '484px',
             height: '48px',
             top: 'calc(50% - 48px)',
-            left: '10%',
+            left: (size?.width ?? 0) < 484 ? '10%' : 'calc(50% - 242px)',
             boxSizing: 'border-box',
             fontSize: 16,
             fontWeight: 'bold',
