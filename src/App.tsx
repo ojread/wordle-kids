@@ -4,11 +4,19 @@ import './App.css';
 import {
   Alert,
   Box,
+  Button,
+  createTheme,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
   Grow,
   GrowProps,
   IconButton,
   Popover,
   Snackbar,
+  ThemeProvider,
   Typography,
   useMediaQuery,
 } from '@mui/material';
@@ -152,12 +160,17 @@ function App() {
   const [anchorElement, setAnchorElement] = useState<HTMLButtonElement | null>(
     null
   );
-  const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
-    setAnchorElement(event.currentTarget);
-  };
-  const handleClose = () => {
+  const handleClick = useCallback(
+    (event: React.MouseEvent<HTMLButtonElement>) => {
+      setAnchorElement(event.currentTarget);
+    },
+    []
+  );
+
+  const handleClose = useCallback(() => {
     setAnchorElement(null);
-  };
+  }, []);
+
   const popoverOpen = useMemo(() => Boolean(anchorElement), [anchorElement]);
 
   const guessesLeft = TOTAL_GUESSES - guesses.length;
@@ -259,6 +272,39 @@ function App() {
     [state]
   );
 
+  const [newGameWordLength, setNewGameWordLength] = useState<
+    number | undefined
+  >(undefined);
+
+  const handleNewGameConfirmClose = useCallback(
+    (newGame: boolean) => {
+      if (!newGame || newGameWordLength === undefined) {
+        setNewGameWordLength(undefined);
+        return;
+      }
+
+      onWordLengthHandler(newGameWordLength);
+      setNewGameWordLength(undefined);
+    },
+    [newGameWordLength, onWordLengthHandler]
+  );
+
+  const tryStartNewGame = useCallback(
+    (length: number) => {
+      if (
+        (guesses.length > 0 && guesses[guesses.length - 1] !== target) ||
+        guess !== ''
+      ) {
+        setAnchorElement(null);
+        setNewGameWordLength(length);
+        return;
+      }
+
+      onWordLengthHandler(length);
+    },
+    [guess, guesses, onWordLengthHandler, target]
+  );
+
   const onChangeKeyboardStyle = useCallback(() => {
     setAnchorElement(null);
     setState({
@@ -285,18 +331,18 @@ function App() {
 
   const onKeyDown = useCallback(
     (event: KeyboardEvent) => {
-      if (event.shiftKey && event.key === 'n') {
+      if (event.shiftKey && event.key === 'N') {
         event.preventDefault();
-        onWordLengthHandler(wordLength);
+        tryStartNewGame(wordLength);
         return;
       }
 
-      switch (event.key) {
+      switch (event.key.toLowerCase()) {
         case '3':
         case '4':
         case '5':
           event.preventDefault();
-          onWordLengthHandler(+event.key);
+          tryStartNewGame(+event.key);
           break;
         case 'a':
         case 'b':
@@ -327,17 +373,17 @@ function App() {
           event.preventDefault();
           onLetterEntered(event.key.toUpperCase());
           break;
-        case 'Enter':
+        case 'enter':
           event.preventDefault();
           onGuess();
           break;
-        case 'Backspace':
+        case 'backspace':
           event.preventDefault();
           onLetterDeleted();
           break;
       }
     },
-    [onGuess, onLetterDeleted, onLetterEntered, onWordLengthHandler, wordLength]
+    [onGuess, onLetterDeleted, onLetterEntered, tryStartNewGame, wordLength]
   );
 
   useEffect(() => {
@@ -348,181 +394,210 @@ function App() {
     };
   }, [onKeyDown]);
 
+  const theme = useMemo(
+    () =>
+      createTheme({
+        palette: {
+          mode: 'dark',
+        },
+      }),
+    []
+  );
+
   return (
-    <div className="App">
-      <header
-        className={`App-header${onBigScreen ? '' : ' App-header-mobile'}`}
-      >
-        <Typography
-          ref={headerRef}
-          variant={onBigScreen ? 'h4' : 'h5'}
-          component="div"
-          sx={{
-            display: 'flex',
-            borderBottom: '1px solid #3a3a3c',
-            height: '51px',
-            lineHeight: '51px',
-            mb: '10px',
-            fontWeight: 600,
-            width: '100%',
-            boxSizing: 'border-box',
-            alignItems: 'center',
-          }}
+    <ThemeProvider theme={theme}>
+      <div className="App">
+        <header
+          className={`App-header${onBigScreen ? '' : ' App-header-mobile'}`}
         >
-          <Box sx={{ flexGrow: 1 }}></Box>
-          Wordle for Kids
-          <Box sx={{ flexGrow: 1, display: 'flex', alignItems: 'flex-end' }}>
-            <IconButton
-              onClick={handleClick}
-              sx={
-                onBigScreen
-                  ? undefined
-                  : {
-                      position: 'absolute',
-                      top: '4px',
-                      right: '4px',
-                    }
-              }
-            >
-              <SettingsOutlinedIcon sx={{ color: 'white' }} />
-            </IconButton>
-            <Popover
-              open={popoverOpen}
-              anchorEl={anchorElement}
-              onClose={handleClose}
-              anchorOrigin={{
-                vertical: 'bottom',
-                horizontal: 'right',
-              }}
-              transformOrigin={{
-                vertical: 'top',
-                horizontal: 'right',
-              }}
-            >
-              <Typography component="div" sx={{ p: 1 }}>
-                <Box
-                  sx={{ p: 1, cursor: 'pointer' }}
-                  onClick={() => onWordLengthHandler(3)}
-                >
-                  3 Letter Words
-                </Box>
-                <Box
-                  sx={{ p: 1, cursor: 'pointer' }}
-                  onClick={() => onWordLengthHandler(4)}
-                >
-                  4 Letter Words
-                </Box>
-                <Box
-                  sx={{ p: 1, cursor: 'pointer' }}
-                  onClick={() => onWordLengthHandler(5)}
-                >
-                  5 Letter Words
-                </Box>
-                <Box
-                  sx={{ p: 1, cursor: 'pointer' }}
-                  onClick={onChangeKeyboardStyle}
-                >
-                  Change to {keyboardStyle === 'abc' ? 'QWERTY' : 'ABC'}{' '}
-                  keyboard
-                </Box>
-              </Typography>
-            </Popover>
+          <Typography
+            ref={headerRef}
+            variant={onBigScreen ? 'h4' : 'h5'}
+            component="div"
+            sx={{
+              display: 'flex',
+              borderBottom: '1px solid #3a3a3c',
+              height: '51px',
+              lineHeight: '51px',
+              mb: '10px',
+              fontWeight: 600,
+              width: '100%',
+              boxSizing: 'border-box',
+              alignItems: 'center',
+            }}
+          >
+            <Box sx={{ flexGrow: 1 }}></Box>
+            Wordle for Kids
+            <Box sx={{ flexGrow: 1, display: 'flex', alignItems: 'flex-end' }}>
+              <IconButton
+                onClick={handleClick}
+                sx={
+                  onBigScreen
+                    ? undefined
+                    : {
+                        position: 'absolute',
+                        top: '4px',
+                        right: '4px',
+                      }
+                }
+              >
+                <SettingsOutlinedIcon sx={{ color: 'white' }} />
+              </IconButton>
+              <Popover
+                open={popoverOpen}
+                anchorEl={anchorElement}
+                onClose={handleClose}
+                anchorOrigin={{
+                  vertical: 'bottom',
+                  horizontal: 'right',
+                }}
+                transformOrigin={{
+                  vertical: 'top',
+                  horizontal: 'right',
+                }}
+              >
+                <Typography component="div" sx={{ p: 1 }}>
+                  <Box
+                    sx={{ p: 1, cursor: 'pointer' }}
+                    onClick={() => tryStartNewGame(3)}
+                  >
+                    3 Letter Words
+                  </Box>
+                  <Box
+                    sx={{ p: 1, cursor: 'pointer' }}
+                    onClick={() => tryStartNewGame(4)}
+                  >
+                    4 Letter Words
+                  </Box>
+                  <Box
+                    sx={{ p: 1, cursor: 'pointer' }}
+                    onClick={() => tryStartNewGame(5)}
+                  >
+                    5 Letter Words
+                  </Box>
+                  <Box
+                    sx={{ p: 1, cursor: 'pointer' }}
+                    onClick={onChangeKeyboardStyle}
+                  >
+                    Change to {keyboardStyle === 'abc' ? 'QWERTY' : 'ABC'}{' '}
+                    keyboard
+                  </Box>
+                </Typography>
+              </Popover>
+            </Box>
+          </Typography>
+          <Box sx={{ flexGrow: 1 }} />
+          <Box
+            sx={{
+              display: 'grid',
+              gridTemplateRows: 'repeat(6, 1fr)',
+              gridGap: '6px',
+              width: `${wordLength * widthMultiplier + (wordLength - 1) * 5}px`,
+            }}
+          >
+            {guesses.map((guess, index) => (
+              <GameTiles
+                target={target}
+                key={`previous-guess-${index}`}
+                word={guess}
+                wordLength={wordLength}
+                locked
+              />
+            ))}
+            {guessesLeft > 0 ? (
+              <GameTiles
+                key={`current-guess-${guesses.length}`}
+                target={target}
+                word={guess}
+                wordLength={wordLength}
+                shake={shake}
+                locked={guessLocked}
+                onLastTileFlip={onGuessFinish}
+              />
+            ) : null}
+            {guessesLeft > 1
+              ? [...Array(guessesLeft - 1)].map((_, index) => (
+                  <GameTiles
+                    target={target}
+                    key={`next-guess-${index}`}
+                    word=""
+                    wordLength={wordLength}
+                  />
+                ))
+              : null}
           </Box>
-        </Typography>
-        <Box sx={{ flexGrow: 1 }} />
-        <Box
-          sx={{
-            display: 'grid',
-            gridTemplateRows: 'repeat(6, 1fr)',
-            gridGap: '6px',
-            width: `${wordLength * widthMultiplier + (wordLength - 1) * 5}px`,
-          }}
+          <Box sx={{ flexGrow: 1 }} />
+          <Keyboard
+            keyboardRef={keyboardRef}
+            guesses={guesses}
+            target={target}
+            keyboardStyle={keyboardStyle}
+            onGuess={onGuess}
+            onLetterEntered={onLetterEntered}
+            onLetterDeleted={onLetterDeleted}
+          />
+        </header>
+        <Snackbar open={showTarget} TransitionComponent={GrowTransition}>
+          <Alert
+            classes={{
+              message: 'alertMessage',
+            }}
+            sx={{
+              position: 'fixed',
+              width: '80%',
+              maxWidth: '484px',
+              height: '48px',
+              top: 'calc(50% - 48px)',
+              left: (size?.width ?? 0) < 484 ? '10%' : 'calc(50% - 242px)',
+              boxSizing: 'border-box',
+              fontSize: 16,
+              fontWeight: 'bold',
+            }}
+            severity="error"
+          >
+            {showTarget ? target : ''}
+          </Alert>
+        </Snackbar>
+        <Snackbar open={showNotInWordList} TransitionComponent={GrowTransition}>
+          <Alert
+            classes={{
+              message: 'alertMessage',
+            }}
+            sx={{
+              position: 'fixed',
+              width: '80%',
+              maxWidth: '484px',
+              height: '48px',
+              top: 'calc(50% - 48px)',
+              left: (size?.width ?? 0) < 484 ? '10%' : 'calc(50% - 242px)',
+              boxSizing: 'border-box',
+              fontSize: 16,
+              fontWeight: 'bold',
+            }}
+            severity="warning"
+          >
+            Not in word list
+          </Alert>
+        </Snackbar>
+        <Dialog
+          open={newGameWordLength !== undefined}
+          onClose={() => handleNewGameConfirmClose(false)}
+          aria-labelledby="alert-dialog-title"
+          aria-describedby="alert-dialog-description"
         >
-          {guesses.map((guess, index) => (
-            <GameTiles
-              target={target}
-              key={`previous-guess-${index}`}
-              word={guess}
-              wordLength={wordLength}
-              locked
-            />
-          ))}
-          {guessesLeft > 0 ? (
-            <GameTiles
-              key={`current-guess-${guesses.length}`}
-              target={target}
-              word={guess}
-              wordLength={wordLength}
-              shake={shake}
-              locked={guessLocked}
-              onLastTileFlip={onGuessFinish}
-            />
-          ) : null}
-          {guessesLeft > 1
-            ? [...Array(guessesLeft - 1)].map((_, index) => (
-                <GameTiles
-                  target={target}
-                  key={`next-guess-${index}`}
-                  word=""
-                  wordLength={wordLength}
-                />
-              ))
-            : null}
-        </Box>
-        <Box sx={{ flexGrow: 1 }} />
-        <Keyboard
-          keyboardRef={keyboardRef}
-          guesses={guesses}
-          target={target}
-          keyboardStyle={keyboardStyle}
-          onGuess={onGuess}
-          onLetterEntered={onLetterEntered}
-          onLetterDeleted={onLetterDeleted}
-        />
-      </header>
-      <Snackbar open={showTarget} TransitionComponent={GrowTransition}>
-        <Alert
-          classes={{
-            message: 'alertMessage',
-          }}
-          sx={{
-            position: 'fixed',
-            width: '80%',
-            maxWidth: '484px',
-            height: '48px',
-            top: 'calc(50% - 48px)',
-            left: (size?.width ?? 0) < 484 ? '10%' : 'calc(50% - 242px)',
-            boxSizing: 'border-box',
-            fontSize: 16,
-            fontWeight: 'bold',
-          }}
-          severity="error"
-        >
-          {showTarget ? target : ''}
-        </Alert>
-      </Snackbar>
-      <Snackbar open={showNotInWordList} TransitionComponent={GrowTransition}>
-        <Alert
-          classes={{
-            message: 'alertMessage',
-          }}
-          sx={{
-            position: 'fixed',
-            width: '80%',
-            maxWidth: '484px',
-            height: '48px',
-            top: 'calc(50% - 48px)',
-            left: (size?.width ?? 0) < 484 ? '10%' : 'calc(50% - 242px)',
-            boxSizing: 'border-box',
-            fontSize: 16,
-            fontWeight: 'bold',
-          }}
-          severity="warning"
-        >
-          Not in word list
-        </Alert>
-      </Snackbar>
-    </div>
+          <DialogTitle id="alert-dialog-title">Quit Game</DialogTitle>
+          <DialogContent>
+            <DialogContentText id="alert-dialog-description">
+              Do you want to quit your game in progress?
+            </DialogContentText>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={() => handleNewGameConfirmClose(false)}>No</Button>
+            <Button onClick={() => handleNewGameConfirmClose(true)}>Yes</Button>
+          </DialogActions>
+        </Dialog>
+      </div>
+    </ThemeProvider>
   );
 }
 
