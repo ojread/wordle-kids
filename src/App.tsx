@@ -21,6 +21,7 @@ import {
   useMediaQuery,
 } from '@mui/material';
 import SettingsOutlinedIcon from '@mui/icons-material/SettingsOutlined';
+import ConfettiExplosion from '@reonomy/react-confetti-explosion';
 import GameTiles from './components/GameTiles';
 import Keyboard from './components/Keyboard';
 import allWords from './words.json';
@@ -134,6 +135,8 @@ function App() {
     showNotInWordList: false,
   });
 
+  const [isExploding, setIsExploding] = useState(false);
+
   const {
     wordLength,
     guesses,
@@ -246,6 +249,19 @@ function App() {
     }
   }, [guess, guesses, guessesLeft, lastGuess, state, target, wordLength]);
 
+  useEffect(() => {
+    if (lastGuess === target) {
+      console.log(lastGuess, target, lastGuess === target);
+      if (lastGuess === target) {
+        setIsExploding(true);
+
+        setTimeout(() => {
+          setIsExploding(false);
+        }, 4000);
+      }
+    }
+  }, [lastGuess, target]);
+
   const onLetterDeleted = useCallback(() => {
     if (lastGuess !== target && guess.length > 0) {
       setState({
@@ -260,6 +276,7 @@ function App() {
       const words = (allWords as Record<string, string[]>)[`${length}`];
 
       setAnchorElement(null);
+      setIsExploding(false);
       setState({
         ...state,
         wordLength: length,
@@ -563,7 +580,13 @@ function App() {
             onLetterDeleted={onLetterDeleted}
           />
         </header>
-        <Snackbar open={showTarget} TransitionComponent={GrowTransition}>
+        <Snackbar
+          classes={{
+            root: 'snackbarRoot',
+          }}
+          open={showTarget}
+          TransitionComponent={GrowTransition}
+        >
           <Alert
             classes={{
               message: 'alertMessage',
@@ -584,7 +607,13 @@ function App() {
             {showTarget ? target : ''}
           </Alert>
         </Snackbar>
-        <Snackbar open={showNotInWordList} TransitionComponent={GrowTransition}>
+        <Snackbar
+          classes={{
+            root: 'snackbarRoot',
+          }}
+          open={showNotInWordList}
+          TransitionComponent={GrowTransition}
+        >
           <Alert
             classes={{
               message: 'alertMessage',
@@ -622,6 +651,32 @@ function App() {
             <Button onClick={() => handleNewGameConfirmClose(true)}>Yes</Button>
           </DialogActions>
         </Dialog>
+        {isExploding ? (
+          <Box
+            sx={{
+              position: 'absolute',
+              left: 0,
+              top: 0,
+              overflow: 'hidden',
+              width: '100%',
+              height: '100%',
+            }}
+          >
+            <Box
+              sx={{
+                position: 'relative',
+                left: '50%',
+                top: '20%',
+              }}
+            >
+              <ConfettiExplosion
+                key="confetti"
+                floorHeight={size.height}
+                floorWidth={size.width}
+              />
+            </Box>
+          </Box>
+        ) : null}
       </div>
     </ThemeProvider>
   );
