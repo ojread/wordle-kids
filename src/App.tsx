@@ -309,8 +309,9 @@ function App() {
   const tryStartNewGame = useCallback(
     (length: number) => {
       if (
-        (guesses.length > 0 && guesses[guesses.length - 1] !== target) ||
-        guess !== ''
+        guessesLeft > 0 &&
+        ((guesses.length > 0 && guesses[guesses.length - 1] !== target) ||
+          guess !== '')
       ) {
         setAnchorElement(null);
         setNewGameWordLength(length);
@@ -319,7 +320,7 @@ function App() {
 
       onWordLengthHandler(length);
     },
-    [guess, guesses, onWordLengthHandler, target]
+    [guess, guesses, guessesLeft, onWordLengthHandler, target]
   );
 
   const onChangeKeyboardStyle = useCallback(
