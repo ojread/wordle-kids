@@ -21,11 +21,11 @@ import {
   useMediaQuery,
 } from '@mui/material';
 import SettingsOutlinedIcon from '@mui/icons-material/SettingsOutlined';
-import ConfettiExplosion from '@reonomy/react-confetti-explosion';
 import GameTiles from './components/GameTiles';
 import Keyboard from './components/Keyboard';
 import allWords from './words.json';
 import dictionary from './dictionary.json';
+import Confetti from './components/Confetti';
 
 const TOTAL_GUESSES = 6;
 const DEFAULT_WIDTH_MULTIPLIER = 66;
@@ -652,32 +652,11 @@ function App() {
             <Button onClick={() => handleNewGameConfirmClose(true)}>Yes</Button>
           </DialogActions>
         </Dialog>
-        {isExploding ? (
-          <Box
-            sx={{
-              position: 'absolute',
-              left: 0,
-              top: 0,
-              overflow: 'hidden',
-              width: '100%',
-              height: '100%',
-            }}
-          >
-            <Box
-              sx={{
-                position: 'relative',
-                left: '50%',
-                top: '20%',
-              }}
-            >
-              <ConfettiExplosion
-                key="confetti"
-                floorHeight={size.height}
-                floorWidth={size.width}
-              />
-            </Box>
-          </Box>
-        ) : null}
+        <Confetti
+          enabled={isExploding}
+          width={size.width}
+          height={size.height}
+        />
       </div>
     </ThemeProvider>
   );
