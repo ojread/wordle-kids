@@ -77,19 +77,22 @@ function useWindowSize() {
 
 function loadState(): AppState {
   const rawData = window.localStorage.getItem('data');
+  const defaultState: AppState = {
+    wordLength: 3,
+    guesses: [],
+    guess: '',
+    guessLocked: false,
+    target: '',
+    keyboardStyle: 'abc',
+    showTarget: false,
+    lastFiveWords: [],
+  };
+
   if (!rawData) {
-    return {
-      wordLength: 3,
-      guesses: [],
-      guess: '',
-      guessLocked: false,
-      target: '',
-      keyboardStyle: 'abc',
-      showTarget: false,
-    };
+    return defaultState;
   }
 
-  return JSON.parse(rawData) as AppState;
+  return { ...defaultState, ...(JSON.parse(rawData) as Partial<AppState>) };
 }
 
 function saveState(state: AppState) {
@@ -108,6 +111,7 @@ interface AppState {
   target: string;
   keyboardStyle: 'qwerty' | 'abc';
   showTarget: boolean;
+  lastFiveWords: string[];
 }
 
 interface BadWordState {
@@ -145,20 +149,10 @@ function App() {
     target,
     keyboardStyle,
     showTarget,
+    lastFiveWords,
   } = state;
 
   const { shake, showNotInWordList } = badWordState;
-
-  useEffect(() => {
-    if (target === '') {
-      const words = (allWords as Record<string, string[]>)[`${wordLength}`];
-
-      setState({
-        ...state,
-        target: words[Math.floor(Math.random() * words.length)].toUpperCase(),
-      });
-    }
-  }, [state, target, wordLength]);
 
   const [anchorElement, setAnchorElement] = useState<HTMLButtonElement | null>(
     null
@@ -251,7 +245,6 @@ function App() {
 
   useEffect(() => {
     if (lastGuess === target) {
-      console.log(lastGuess, target, lastGuess === target);
       if (lastGuess === target) {
         setIsExploding(true);
 
@@ -275,6 +268,17 @@ function App() {
     (length: number) => {
       const words = (allWords as Record<string, string[]>)[`${length}`];
 
+      let newWord: string;
+      do {
+        newWord = words[Math.floor(Math.random() * words.length)].toUpperCase();
+      } while (lastFiveWords.includes(newWord));
+
+      const newLastFiveWords = [...lastFiveWords];
+      if (newLastFiveWords.length >= 5) {
+        newLastFiveWords.shift();
+      }
+      newLastFiveWords.push(newWord);
+
       setAnchorElement(null);
       setIsExploding(false);
       setState({
@@ -282,12 +286,19 @@ function App() {
         wordLength: length,
         guesses: [],
         guess: '',
-        target: words[Math.floor(Math.random() * words.length)].toUpperCase(),
+        target: newWord,
+        lastFiveWords: newLastFiveWords,
         showTarget: false,
       });
     },
-    [state]
+    [lastFiveWords, state]
   );
+
+  useEffect(() => {
+    if (target === '') {
+      onWordLengthHandler(wordLength);
+    }
+  }, [lastFiveWords, onWordLengthHandler, state, target, wordLength]);
 
   const [newGameWordLength, setNewGameWordLength] = useState<
     number | undefined
